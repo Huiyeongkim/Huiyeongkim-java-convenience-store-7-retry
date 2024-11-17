@@ -47,4 +47,8 @@ public class OutputView {
         System.out.println("멤버십할인\t\t\t -" + formatter.format(discountMembershipMoney));
         System.out.println("내실돈\t\t\t " + formatter.format(totalMoney));
     }
+
+    public static void displayError(IllegalArgumentException e) {
+        System.out.println(e.getMessage());
+    }
 }

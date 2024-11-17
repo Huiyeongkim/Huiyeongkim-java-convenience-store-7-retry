@@ -1,5 +1,8 @@
 package store.model;
 
+import store.validator.Validator;
+import store.view.OutputView;
+
 import java.time.LocalDate;
 
 public class Order {
@@ -49,37 +52,36 @@ public class Order {
 
     public int getOrderedPromotionQuantity() {
         Product product = ProductManager.findPromotionProductByName(orderedProductName);
-        if (product==null) {
+        if (product == null) {
             return 0;
         }
         Promotion promotion = PromotionManager.findPromotionByPromotionName(product.getPromotion());
-        if (promotion==null) {
+        if (promotion == null) {
             return 0;
         }
 
-        if(orderedProductQuantity > product.getQuantity()) {
-            return (product.getQuantity()/ (promotion.getBuyQuantity() + promotion.getFreeQuantity()))*promotion.getFreeQuantity();
+        if (orderedProductQuantity > product.getQuantity()) {
+            return (product.getQuantity() / (promotion.getBuyQuantity() + promotion.getFreeQuantity())) * promotion.getFreeQuantity();
         }
-        return (orderedProductQuantity / (promotion.getBuyQuantity() + promotion.getFreeQuantity()))*promotion.getFreeQuantity();
+        return (orderedProductQuantity / (promotion.getBuyQuantity() + promotion.getFreeQuantity())) * promotion.getFreeQuantity();
     }
 
-    public void decreaseProductQuantity(String productName, int quantity) {
+    public int decreaseProductQuantity(String productName, int quantity) {
         Product product = ProductManager.findPromotionProductByName(productName);
+        Product product2 = ProductManager.findWithoutPromotionProductByName(productName);
         int remainingQuantity = quantity;
 
         if (product != null) {
             int currentQuantity = product.getQuantity();
             if (currentQuantity >= remainingQuantity) {
                 product.setQuantity(currentQuantity - remainingQuantity);
-            }
-            else {
+            } else {
                 product.setQuantity(0);
             }
             remainingQuantity -= currentQuantity;
         }
 
         if (remainingQuantity > 0) {
-            Product product2 = ProductManager.findWithoutPromotionProductByName(productName);
             if (product2 != null) {
                 int currentQuantity = product2.getQuantity();
                 if (currentQuantity >= remainingQuantity) {
@@ -87,6 +89,6 @@ public class Order {
                 }
             }
         }
+        return 0;
     }
-
 }

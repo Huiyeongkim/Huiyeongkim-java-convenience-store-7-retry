@@ -1,6 +1,7 @@
 package store.controller;
 
 import store.model.*;
+import store.validator.Validator;
 import store.view.InputView;
 import store.view.OutputView;
 
@@ -33,17 +34,27 @@ public class StoreController {
     }
 
     private void getProducts() throws IOException {
-        String inputProduct = InputView.readProduct();
-        List<Order> orders = handleOrder(inputProduct);
-        membership = InputView.readMembership();
-        OutputView.displayReceiptStart();
+        List<Order> orders = new ArrayList<>();
+        while(true) {
+            try {
+                String inputProduct = InputView.readProduct();
+                membership = InputView.readMembership();
+                orders = handleOrder(inputProduct);
+                OutputView.displayReceiptStart();
 
-        for (Order order : orders) {
-            String orderedProductName = order.getOrderedProductName();
-            int orderedProductQuantity = order.getOrderedProductQuantity();
-            int orderedProductPrice = order.getProductPrice();
-            int orderedPrice = orderedProductPrice * orderedProductQuantity;
-            OutputView.displayReceipt(orderedProductName, orderedProductQuantity, orderedPrice);
+                for (Order order : orders) {
+                    String orderedProductName = order.getOrderedProductName();
+                    int orderedProductQuantity = order.getOrderedProductQuantity();
+                    int orderedProductPrice = order.getProductPrice();
+                    int orderedPrice = orderedProductPrice * orderedProductQuantity;
+                    Validator.validateQuantity(orderedProductName, orderedProductQuantity);
+                    OutputView.displayReceipt(orderedProductName, orderedProductQuantity, orderedPrice);
+                }
+                break;
+            }
+            catch (IllegalArgumentException e) {
+                OutputView.displayError(e);
+            }
         }
 
         int discountPromotionMoney = getPromotions(orders);
@@ -56,7 +67,7 @@ public class StoreController {
         getCountingMoney(orders, discountPromotionMoney);
     }
 
-    private List<Order> handleOrder(String inputProduct) throws IOException {
+    private List<Order> handleOrder(String inputProduct) {
         String[] tokens = inputProduct.split(",");
         List<Order> orders = new ArrayList<>();
         for (String token : tokens) {
@@ -72,7 +83,7 @@ public class StoreController {
 
     }
 
-    private int getPromotions(List<Order> orders) throws IOException {
+    private int getPromotions(List<Order> orders) {
         OutputView.displayGiveawayStart();
         LocalDate currentDate = LocalDate.now();
         int discountPromotionMoney = 0;
