@@ -1,6 +1,7 @@
 package store;
 
 import camp.nextstep.edu.missionutils.test.NsTest;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -59,6 +60,33 @@ class ApplicationTest extends NsTest {
         assertSimpleTest(() -> {
             runException("[컵라면-12]", "N", "N");
             assertThat(output()).contains("[ERROR] 재고 수량을 초과하여 구매할 수 없습니다. 다시 입력해 주세요.");
+        });
+    }
+
+    @Test
+    @DisplayName("존재하지 않은 상품 주문 시 에러")
+    void 예외_테스트_존재X() {
+        assertSimpleTest(() -> {
+            runException("[김장김치-12]", "N", "N");
+            assertThat(output()).contains("[ERROR] 존재하지 않는 상품입니다. 다시 입력해 주세요.");
+        });
+    }
+
+    @Test
+    @DisplayName("멤버쉽 입력 오류 시 에러")
+    void 예외_테스트_멤버쉽() {
+        assertSimpleTest(() -> {
+            runException("[콜라-2]", "NOOOO", "N");
+            assertThat(output()).contains("[ERROR] 잘못된 입력입니다. 다시 입력해 주세요.");
+        });
+    }
+
+    @Test
+    @DisplayName("다시 입력 오류 시 에러")
+    void 예외_테스트_다시() {
+        assertSimpleTest(() -> {
+            runException("[콜라-2]", "N", "NOO");
+            assertThat(output()).contains("[ERROR] 잘못된 입력입니다. 다시 입력해 주세요.");
         });
     }
 

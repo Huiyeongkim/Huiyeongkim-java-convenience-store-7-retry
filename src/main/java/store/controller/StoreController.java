@@ -34,27 +34,16 @@ public class StoreController {
     }
 
     private void getProducts() throws IOException {
-        List<Order> orders = new ArrayList<>();
-        while(true) {
-            try {
-                String inputProduct = InputView.readProduct();
-                membership = InputView.readMembership();
-                orders = handleOrder(inputProduct);
-                OutputView.displayReceiptStart();
+        List<Order> orders = handleOrder();
+        OutputView.displayReceiptStart();
 
-                for (Order order : orders) {
-                    String orderedProductName = order.getOrderedProductName();
-                    int orderedProductQuantity = order.getOrderedProductQuantity();
-                    int orderedProductPrice = order.getProductPrice();
-                    int orderedPrice = orderedProductPrice * orderedProductQuantity;
-                    Validator.validateQuantity(orderedProductName, orderedProductQuantity);
-                    OutputView.displayReceipt(orderedProductName, orderedProductQuantity, orderedPrice);
-                }
-                break;
-            }
-            catch (IllegalArgumentException e) {
-                OutputView.displayError(e);
-            }
+        for (Order order : orders) {
+            String orderedProductName = order.getOrderedProductName();
+            int orderedProductQuantity = order.getOrderedProductQuantity();
+            int orderedProductPrice = order.getProductPrice();
+            int orderedPrice = orderedProductPrice * orderedProductQuantity;
+
+            OutputView.displayReceipt(orderedProductName, orderedProductQuantity, orderedPrice);
         }
 
         int discountPromotionMoney = getPromotions(orders);
@@ -67,20 +56,36 @@ public class StoreController {
         getCountingMoney(orders, discountPromotionMoney);
     }
 
-    private List<Order> handleOrder(String inputProduct) {
-        String[] tokens = inputProduct.split(",");
+    private List<Order> handleOrder() {
         List<Order> orders = new ArrayList<>();
-        for (String token : tokens) {
-            token = token.trim();
-            String s = token.replaceAll("[\\[\\]]", "");
-            String[] split = s.split("-");
-            String orderedProductName = split[0].trim();
-            int orderedProductQuantity = Integer.parseInt(split[1].trim());
+        while (true) {
+            try {
+                String inputProduct = InputView.readProduct();
+                String[] tokens = inputProduct.split(",");
+                orders = new ArrayList<>();
+                for (String token : tokens) {
+                    token = token.trim();
+                    String s = token.replaceAll("[\\[\\]]", "");
+                    String[] split = s.split("-");
+                    Validator.validateInput(split);
 
-            orders.add(new Order(orderedProductName, orderedProductQuantity));
+                    String orderedProductName = split[0].trim();
+                    int orderedProductQuantity = Integer.parseInt(split[1].trim());
+                    Validator.validateNoExist(orderedProductName);
+                    Validator.validateQuantity(orderedProductName, orderedProductQuantity);
+
+                    orders.add(new Order(orderedProductName, orderedProductQuantity));
+                }
+                membership = InputView.readMembership();
+                Validator.validateYesOrNo(membership);
+                break;
+            }
+            catch (IllegalArgumentException e) {
+                OutputView.displayError(e);
+            }
         }
-        return orders;
 
+        return orders;
     }
 
     private int getPromotions(List<Order> orders) {
@@ -130,20 +135,29 @@ public class StoreController {
     }
 
     private void getAgain() throws IOException {
-        String again = InputView.readOtherProduct();
+        while(true) {
+            try {
+                String again = InputView.readOtherProduct().trim();
+                Validator.validateYesOrNo(again);
 
-        if (again.equals("Y")) {
-            InputView.displayWelcomeMessage();
-            List<Product> products = productManager.getProducts();
-            for (Product product : products) {
-                String productName = product.getProductName();
-                int price = product.getPrice();
-                int quantity = product.getQuantity();
-                String promotion = product.getPromotion();
-                OutputView.displayStock(productName, price, quantity, promotion);
+                if (again.equals("Y")) {
+                    InputView.displayWelcomeMessage();
+                    List<Product> products = productManager.getProducts();
+                    for (Product product : products) {
+                        String productName = product.getProductName();
+                        int price = product.getPrice();
+                        int quantity = product.getQuantity();
+                        String promotion = product.getPromotion();
+                        OutputView.displayStock(productName, price, quantity, promotion);
+                    }
+
+                    getProducts();
+                }
+                break;
             }
-
-            getProducts();
+            catch (IllegalArgumentException e) {
+                OutputView.displayError(e);
+            }
         }
     }
 }
